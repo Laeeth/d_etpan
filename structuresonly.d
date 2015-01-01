@@ -1,46 +1,3 @@
-import std.file;
-import std.stdio;
-import std.concurrency;
-import core.stdc.time;
-import std.c.linux.linux;
-import std.c.linux.pthread;
-//import core.time;
-/** 
-Port of libetpan IMAP library to the D programming Language
-written in 2014 by Laeeth Isharc
-
-see end of file for COPYRIGHT etc
-
- */
-
-
-extern(C)
-{
-	/**
-		following aliases are checked and correct
-	*/
-	alias pid_t=int;
-	mailmime_content * mailmime_get_content(char * mime_type);
-	alias mailmime_content_new_with_str= mailmime_get_content;
-	alias chashiter=chashcell;
-	alias timeval=time_t;
-	/**
-		following are not correct
-
-		missing - mailmime_fields_new_encoding, mailmime_param_new_with_data, mailmime_new_empty, mailmime_set_body_text
-	*/
-	enum PATH_MAX=32000;
-	/**
-	====================
-	*/
-
-	alias uint8_t=ubyte;
-	alias uint16_t=ushort;
-	alias uint32_t=uint;
-	alias uint64_t=ulong;
-	alias int16_t=short;
-	alias int32_t=int;
-	alias ssize_t=size_t;
 	enum no_argument        =0;
 	enum required_argument  =1;
 	enum optional_argument  =2;
@@ -51,11 +8,6 @@ extern(C)
 		int *flag;
 		int val;
 	}
-	enum LIBETPAN_REENTRANT=1;
-	enum HAVE_PTHREAD_H=1;
-	enum IGNORE_PTHREAD_H=0;
-	enum USE_SSL=1;
-	enum USE_GNUTLS=0;
 	struct mailstream_ssl_context
 	{
   		int fd;
@@ -94,18 +46,6 @@ extern(C)
 	  chash * storage_hash;
 	}
 
-	int	getopt_long(int, char **,char *, option *, int *);
-
-//	int	getopt_long(int, (char * /*const*/) *, (/*const */char) *, (/*const*/ option) *, int *);
-	int	getopt_long_only(int, char **, char *, option *, int *);
-//	int	getopt_long_only(int, char * const *, const char *, const option *, int *);
-	int	getopt(int, char **  ,  char *);
-//	int	getopt(int, char ** const , const char *);
-
-	__gshared char *optarg;			/* getopt(3) external variables */
-	__gshared int optind, opterr, optopt;
-	__gshared int optreset;			/* getopt(3) external variable */
-
 	struct db_session_state_data {
 	  char db_filename[PATH_MAX];
 	  mail_flags_store * db_flags_store;
@@ -114,15 +54,6 @@ extern(C)
 	struct db_mailstorage {
 	  char * db_pathname;
 	};
-	__gshared mailsession_driver * db_session_driver;
-
-	int db_mailstorage_init(mailstorage * storage, char * db_pathname);
-	int maildirdriver_maildir_error_to_mail_error(int error);
-	uint32_t maildirdriver_maildir_flags_to_flags(uint32_t md_flags);
-	uint32_t maildirdriver_flags_to_maildir_flags(uint32_t flags);
-	//int maildir_get_messages_list(mailsession * session, maildir * md, mailmessage_driver * message_driver, mailmessage_list ** result); mailsession_driver * maildir_cached_session_driver;
-	int maildir_mailstorage_init(mailstorage * storage, const char * md_pathname, int md_cached, const char * md_cache_directory, const char * md_flags_directory);
-
 	struct maildir_session_state_data {
 	  maildir * md_session;
 	  mail_flags_store * md_flags_store;
@@ -148,20 +79,6 @@ extern(C)
 	  char * md_cache_directory;
 	  char * md_flags_directory;
 	}
-
-
-	int pop3_mailstorage_init(mailstorage * storage, const char * pop3_servername, uint16_t pop3_port, const char * pop3_command, int pop3_connection_type, int pop3_auth_type, const char * pop3_login, const char * pop3_password, int pop3_cached, const char * pop3_cache_directory, const char * pop3_flags_directory);
-	int pop3_mailstorage_init_sasl(mailstorage * storage, const char * pop3_servername, uint16_t pop3_port, const char * pop3_command, int pop3_connection_type, const char * auth_type, const char * server_fqdn, const char * local_ip_port, const char * remote_ip_port, const char * login, const char * auth_name, const char * password, const char * realm, int pop3_cached, const char * pop3_cache_directory, const char * pop3_flags_directory);
-	int pop3_mailstorage_init_sasl_with_local_address(mailstorage * storage, const char * pop3_servername, uint16_t pop3_port, const char * imap_local_address, uint16_t imap_local_port, const char * pop3_command, int pop3_connection_type, const char * auth_type, const char * server_fqdn, const char * local_ip_port, const char * remote_ip_port, const char * login, const char * auth_name, const char * password, const char * realm, int pop3_cached, const char * pop3_cache_directory, const char * pop3_flags_directory);
-	__gshared mailsession_driver * pop3_session_driver;
-	int pop3driver_pop3_error_to_mail_error(int error);
-	int pop3driver_retr(mailsession * session, uint32_t indx, char ** result, size_t * result_len);
-	int pop3driver_header(mailsession * session, uint32_t indx, char ** result, size_t * result_len);
-	int pop3driver_size(mailsession * session, uint32_t indx, size_t * result);
-	int pop3driver_get_cached_flags(mail_cache_db * cache_db, MMAPString * mmapstr, mailsession * session, uint32_t num, mail_flags ** result);
-	int pop3driver_write_cached_flags(mail_cache_db * cache_db, MMAPString * mmapstr, char * uid, mail_flags * flags);
-	int pop3_get_messages_list(mailpop3 * pop3, mailsession * session, mailmessage_driver * driver, mailmessage_list ** result);
-	__gshared mailsession_driver * pop3_cached_session_driver;
 
 	enum {
 	  POP3DRIVER_SET_AUTH_TYPE = 1
@@ -250,11 +167,6 @@ extern(C)
 	enum POP3_SASL_AUTH_TYPE_APOP="X-LIBETPAN-APOP";
 	enum POP3_SASL_AUTH_TYPE_TRY_APOP="X-LIBETPAN-TRY-APOP";
 
-	
-	int mh_mailstorage_init(mailstorage * storage,
-	    const char * mh_pathname, int mh_cached,
-	    const char * mh_cache_directory, const char * mh_flags_directory);
-
 
 	struct mh_session_state_data {
 	  mailmh * mh_session;
@@ -281,39 +193,6 @@ extern(C)
 	  char * mh_cache_directory;
 	  char * mh_flags_directory;
 	}
-
-	__gshared mailmessage_driver * mh_message_driver;
-	__gshared mailmessage_driver * mh_cached_message_driver;
-	__gshared mailsession_driver * mh_cached_session_driver;
-	int mhdriver_mh_error_to_mail_error(int error);
-	int mhdriver_fetch_message(mailsession * session, uint32_t indx, char ** result, size_t * result_len);
-	int mhdriver_fetch_header(mailsession * session, uint32_t indx, char ** result, size_t * result_len);
-	int mhdriver_fetch_size(mailsession * session, uint32_t indx, size_t * result);
-	int mhdriver_get_cached_flags(mail_cache_db * cache_db, MMAPString * mmapstr, mailsession * session,
-	    uint32_t num, mail_flags ** result);
-	int mhdriver_write_cached_flags(mail_cache_db * cache_db, MMAPString * mmapstr, char * uid, mail_flags * flags);
-	int mh_get_messages_list(mailmh_folder * folder, mailsession * session, mailmessage_driver * driver, mailmessage_list ** result);
-	__gshared mailmessage_driver * nntp_message_driver;
-	__gshared mailmessage_driver * nntp_cached_message_driver;
-	__gshared mailsession_driver * nntp_session_driver;
-	__gshared  mailsession_driver * nntp_cached_session_driver;
-	int nntpdriver_nntp_error_to_mail_error(int error);
-	int nntpdriver_authenticate_password(mailsession * session);
-	int nntpdriver_authenticate_user(mailsession * session);
-	int nntpdriver_article(mailsession * session, uint32_t indx, char ** result, size_t * result_len);
-	int nntpdriver_head(mailsession * session, uint32_t indx, char ** result, size_t * result_len);
-	int nntpdriver_size(mailsession * session, uint32_t indx, size_t * result);
-	int nntpdriver_get_cached_flags(mail_cache_db * cache_db, MMAPString * mmapstr, uint32_t num, mail_flags ** result);
-	int nntpdriver_write_cached_flags(mail_cache_db * cache_db, MMAPString * mmapstr, uint32_t num, mail_flags * flags);
-	int nntpdriver_select_folder(mailsession * session, const char * mb);
-	int nntp_get_messages_list(mailsession * nntp_session, mailsession * session, mailmessage_driver * driver, mailmessage_list ** result);
-	int nntpdriver_mode_reader(mailsession * session);
-	int nntp_mailstorage_init(mailstorage * storage, const char * nntp_servername, uint16_t nntp_port,
-	    const char * nntp_command, int nntp_connection_type, int nntp_auth_type, const char * nntp_login, const char * nntp_password,
-	    int nntp_cached, const char * nntp_cache_directory, const char * nntp_flags_directory);
-	int nntp_mailstorage_init_with_local_address(mailstorage * storage, const char * nntp_servername, uint16_t nntp_port,
-	    const char * nntp_local_servername, uint16_t nntp_local_port, const char * nntp_command, int nntp_connection_type, int nntp_auth_type,
-	    const char * nntp_login, const char * nntp_password, int nntp_cached, const char * nntp_cache_directory, const char * nntp_flags_directory);
 
 	enum {
 	  NNTPDRIVER_SET_MAX_ARTICLES = 1
@@ -371,16 +250,6 @@ extern(C)
 	enum {
 	  NNTP_AUTH_TYPE_PLAIN  /* plain text authentication */
 	};
-
-	__gshared mailmessage_driver * mime_message_driver;
-	__gshared mailmessage * mime_message_init(mailmime * mime);
-	void mime_message_detach_mime(mailmessage * msg);
-	int mime_message_set_tmpdir(mailmessage * msg, char * tmpdir);
-	__gshared mailsession_driver * imap_cached_session_driver;
-	int imap_mailstorage_init(mailstorage * storage, const char * imap_servername, uint16_t imap_port, const char * imap_command, int imap_connection_type, int imap_auth_type, const char * imap_login, const char * imap_password, int imap_cached, const char * imap_cache_directory);
-	int imap_mailstorage_init_sasl(mailstorage * storage, const char * imap_servername, uint16_t imap_port, const char * imap_command, int imap_connection_type, const char * auth_type, const char * server_fqdn, const char * local_ip_port, const char * remote_ip_port, const char * login, const char * auth_name, const char * password, const char * realm, int imap_cached, const char * imap_cache_directory);
-	int imap_mailstorage_init_sasl_with_local_address(mailstorage * storage, const char * imap_servername, uint16_t imap_port, const char * imap_local_address, uint16_t imap_local_port, const char * imap_command, int imap_connection_type, const char * auth_type, const char * server_fqdn, const char * local_ip_port, const char * remote_ip_port, const char * login, const char * auth_name, const char * password, const char * realm, int imap_cached, const char * imap_cache_directory);
-
 
 	struct imap_session_state_data {
 	  mailimap * imap_session;
@@ -459,28 +328,6 @@ extern(C)
 	  IMAP_AUTH_TYPE_SASL_DIGEST_MD5   /* SASL digest MD5 */
 	};
 
-	__gshared mailsession_driver * imap_session_driver;
-	__gshared mailmessage_driver * imap_cached_message_driver;
-	__gshared mailmessage_driver * imap_message_driver;
-	int imapdriver_get_cached_envelope(mail_cache_db * cache_db, MMAPString * mmapstr, mailsession * session, mailmessage * msg, mailimf_fields ** result);
-	int imapdriver_write_cached_envelope(mail_cache_db * cache_db, MMAPString * mmapstr, mailsession * session, mailmessage * msg, mailimf_fields * fields);
-	int imap_error_to_mail_error(int error);
-	int imap_store_flags(mailimap * imap, uint32_t first, uint32_t last, mail_flags * flags);
-	int imap_fetch_flags(mailimap * imap, uint32_t indx, mail_flags ** result);
-	int imap_get_messages_list(mailimap * imap, mailsession * session, mailmessage_driver * driver, uint32_t first_index, mailmessage_list ** result);
-	int imap_list_to_list(clist * imap_list, mail_list ** result);
-	int imap_section_to_imap_section(mailmime_section * section, int type, mailimap_section ** result);
-	int imap_get_msg_att_info(mailimap_msg_att * msg_att, uint32_t * puid, mailimap_envelope ** pimap_envelope, char ** preferences,
-	    size_t * pref_size, mailimap_msg_att_dynamic ** patt_dyn, mailimap_body ** pimap_body);
-	int imap_add_envelope_fetch_att(mailimap_fetch_type * fetch_type);
-	int imap_env_to_fields(mailimap_envelope * env, char * ref_str, size_t ref_size, mailimf_fields ** result);
-	int imap_fetch_result_to_envelop_list(clist * fetch_result, mailmessage_list * env_list);
-	int imap_body_to_body(mailimap_body * imap_body, mailmime ** result);
-	int imap_msg_list_to_imap_set(clist * msg_list, mailimap_set ** result);
-	int imap_flags_to_imap_flags(mail_flags * flags, mailimap_flag_list ** result);
-	int imap_flags_to_flags(mailimap_msg_att_dynamic * att_dyn, mail_flags ** result);
-	int feed_mailstorage_init(mailstorage * storage, const char * feed_url, int feed_cached, const char * feed_cache_directory, const char * feed_flags_directory);
-	__gshared mailsession_driver * feed_session_driver;
 
 	struct feed_session_state_data {
 	  time_t feed_last_update;
@@ -496,11 +343,6 @@ extern(C)
 	  char * feed_flags_directory;
 	}
 
-	__gshared mailmessage_driver * feed_message_driver;
-	__gshared mailmessage_driver * mbox_cached_message_driver;
-
-	int mbox_mailstorage_init(mailstorage * storage, const char * mb_pathname, int mb_cached,
-	    const char * mb_cache_directory, const char * mb_flags_directory);
 
 	enum {
 	  MBOXDRIVER_SET_READ_ONLY = 1,
@@ -540,21 +382,6 @@ extern(C)
 	  char * mbox_flags_directory;
 	}
 
-	__gshared mailsession_driver * mbox_session_driver;
-	__gshared mailsession_driver * mbox_cached_session_driver;
-	int mboxdriver_mbox_error_to_mail_error(int error);
-	int mboxdriver_fetch_msg(mailsession * session, uint32_t indx, char ** result, size_t * result_len);
-	int mboxdriver_fetch_size(mailsession * session, uint32_t indx, size_t * result);
-	int mboxdriver_get_cached_flags(mail_cache_db * cache_db, MMAPString * mmapstr, mailsession * session,
-	    uint32_t num, mail_flags ** result);
-	int mboxdriver_write_cached_flags(mail_cache_db * cache_db, MMAPString * mmapstr, char * uid, mail_flags * flags);
-	int mbox_get_uid_messages_list(mailmbox_folder * folder, mailsession * session, mailmessage_driver * driver, mailmessage_list ** result);
-	int mbox_get_messages_list(mailmbox_folder * folder, mailsession * session, mailmessage_driver * driver, mailmessage_list ** result);
-	int mboxdriver_fetch_header(mailsession * session, uint32_t indx, char ** result, size_t * result_len);
-	int hotmail_mailstorage_init(mailstorage * storage, char * hotmail_login, char * hotmail_password, int hotmail_cached, char * hotmail_cache_directory, char * hotmail_flags_directory);
-	__gshared mailmessage_driver * data_message_driver;
-	__gshared  mailmessage * data_message_init(char * data, size_t len);
-	void data_message_detach_mime(mailmessage * msg);
 
 	enum {
 	  MAIL_THREAD_REFERENCES,            /* this is threading using
@@ -566,42 +393,12 @@ extern(C)
 	}
 
 
-	int generic_cache_create_dir(char * dirname);
-	int generic_cache_store(char * filename, char * content, size_t length);
-	int generic_cache_read(char * filename, char ** result, size_t * result_len);
-	int generic_cache_fields_read(mail_cache_db * cache_db, MMAPString * mmapstr, char * keyname, mailimf_fields ** result); 
-	int generic_cache_fields_write(mail_cache_db * cache_db, MMAPString * mmapstr, char * keyname, mailimf_fields * fields);
-	int generic_cache_flags_read(mail_cache_db * cache_db, MMAPString * mmapstr, char * keyname, mail_flags ** result); 
-	int generic_cache_flags_write( mail_cache_db * cache_db, MMAPString * mmapstr, char * keyname, mail_flags * flags); 
-	int generic_cache_delete( mail_cache_db * cache_db, char * keyname);
-	mail_flags_store * mail_flags_store_new();
-	void mail_flags_store_clear( mail_flags_store * flags_store);
-	void mail_flags_store_free( mail_flags_store * flags_store);
-	int mail_flags_store_set( mail_flags_store * flags_store, mailmessage * msg);
-	void mail_flags_store_sort( mail_flags_store * flags_store);
-	 mail_flags * mail_flags_store_get( mail_flags_store * flags_store, uint32_t indx);
-	int mail_flags_compare( mail_flags * flags1, mail_flags * flags2);
-
 	struct mail_flags_store {
 	  carray * fls_tab;
 	  chash * fls_hash;
 	};
 
 
-	int mail_serialize_clear(MMAPString * mmapstr, size_t * indx);
-	int mail_serialize_write(MMAPString * mmapstr, size_t * indx, char * buf, size_t size);
-	int mail_serialize_read(MMAPString * mmapstr, size_t * indx, char * buf, size_t size);
-	int mailimf_cache_int_write(MMAPString * mmapstr, size_t * indx, uint32_t value);
-	int mailimf_cache_string_write(MMAPString * mmapstr, size_t * indx, char * str, size_t length);
-	int mailimf_cache_int_read(MMAPString * mmapstr, size_t * indx, uint32_t * result);
-	int mailimf_cache_string_read(MMAPString * mmapstr, size_t * indx, char ** result);
-	int mailimf_cache_fields_write(MMAPString * mmapstr, size_t * indx, mailimf_fields * fields);
-	int mailimf_cache_fields_read(MMAPString * mmapstr, size_t * indx,  mailimf_fields ** result);
-	int mail_build_thread(int type, char * default_from, mailmessage_list * env_list, mailmessage_tree ** result, int function( mailmessage_tree **,  mailmessage_tree **) comp_func);
-	int mail_thread_sort( mailmessage_tree * tree, int function( mailmessage_tree **, mailmessage_tree **) comp_func, int sort_sub);
-	int mailthread_tree_timecomp( mailmessage_tree ** ptree1,  mailmessage_tree ** ptree2);
-
-	
 	struct mailstorage_driver {
 	  char * sto_name;
 	  int function(mailstorage * storage) sto_connect;
@@ -653,16 +450,6 @@ extern(C)
 	  CONNECTION_TYPE_COMMAND_TLS  /* the connection is over a shell
 	                                  command in TLS */
 	}
-	int mailfolder_noop( mailfolder * folder);
-	int mailfolder_check( mailfolder * folder);
-	int mailfolder_expunge( mailfolder * folder);
-	int mailfolder_status( mailfolder * folder, uint32_t * result_messages, uint32_t * result_recent, uint32_t * result_unseen);
-	int mailfolder_append_message( mailfolder * folder, char * message, size_t size);
-	int mailfolder_append_message_flags( mailfolder * folder, char * message, size_t size,  mail_flags * flags);
-	int mailfolder_get_messages_list( mailfolder * folder,  mailmessage_list ** result);
-	int mailfolder_get_envelopes_list( mailfolder * folder, mailmessage_list * result);
-	int mailfolder_get_message( mailfolder * folder, uint32_t num, mailmessage ** result);
-	int mailfolder_get_message_by_uid( mailfolder * folder, const char * uid, mailmessage ** result);
 
 	enum {
 	  MAIL_NO_ERROR = 0,
@@ -727,16 +514,10 @@ extern(C)
 	  MAIL_ERROR_SSL
 	}
 
-	int mail_flags_add_extension(mail_flags * flags, char * ext_flag);
-	int mail_flags_remove_extension( mail_flags * flags, char * ext_flag);
-	int mail_flags_has_extension( mail_flags * flags, char * ext_flag);
-
 	struct mailmessage_list {
 	  carray * msg_tab; /* elements are (mailmessage *) */
 	}
 
-	mailmessage_list * mailmessage_list_new(carray * msg_tab);
-	void mailmessage_list_free(mailmessage_list * env_list);
 
 	struct mail_list {
 	  clist * mb_list; /* elements are (char *) */
@@ -762,10 +543,6 @@ extern(C)
 	  clist * fl_extension; /* elements are (char *) */
 	}
 
-	mail_flags * mail_flags_new(uint32_t fl_flags, clist * fl_ext);
-	void mail_flags_free(mail_flags * flags);
-	mail_flags * mail_flags_new_empty();
-	int32_t mailimf_date_time_comp( mailimf_date_time * date1,  mailimf_date_time * date2);
 	
 	enum {
 	  MAIL_SEARCH_KEY_ALL,        /* all messages correspond */
@@ -921,147 +698,6 @@ extern(C)
 	  void * msg_data;
 	};
 
-	char * maildriver_strerror(int err);
-	void *libetpan_malloc(size_t length);
-	void libetpan_free(void* data);
-	
-	int mailstorage_generic_connect(mailsession_driver * driver, char * servername, uint16_t port, char * command, int connection_type, int cache_function_id, char * cache_directory, int flags_function_id, char * flags_directory, mailsession ** result);
-	int mailstorage_generic_connect_with_local_address(mailsession_driver * driver, char * servername, uint16_t port, char * local_address, uint16_t local_port, char * command, int connection_type, int cache_function_id, char * cache_directory, int flags_function_id, char * flags_directory, mailsession ** result);
-	int mailstorage_generic_auth(mailsession * session, int connect_result, int auth_type, char * login, char * password);
-	int mailstorage_generic_auth_sasl(mailsession * session, int connect_result, const char * auth_type, const char * server_fqdn, const char * local_ip_port, const char * remote_ip_port, const char * login, const char * auth_name, const char * password, const char * realm);
-
-	mailstorage * mailstorage_new(const char * sto_id);
-	void mailstorage_free(mailstorage * storage);
-	int mailstorage_connect(mailstorage * storage);
-	void mailstorage_disconnect(mailstorage * storage);
-	int mailstorage_noop(mailstorage * storage);
-	 mailfolder * mailfolder_new( mailstorage * fld_storage, const char * fld_pathname, const char * fld_virtual_name);
-	void mailfolder_free( mailfolder * folder);
-	int mailfolder_add_child( mailfolder * parent,  mailfolder * child);
-	int mailfolder_detach_parent( mailfolder * folder);
-	int mailfolder_connect( mailfolder * folder);
-	void mailfolder_disconnect( mailfolder * folder);
-	mailsession * mailsession_new(mailsession_driver * sess_driver);
-	 void mailsession_free(mailsession * session);
-	 int mailsession_parameters(mailsession * session, int id, void * value);
-	 int mailsession_connect_stream(mailsession * session, mailstream * s);
-	 int mailsession_connect_path(mailsession * session, const char * path);
-	 int mailsession_starttls(mailsession * session);
-	 int mailsession_login(mailsession * session, const char * userid, const char * password);
-	 int mailsession_logout(mailsession * session);
-	 int mailsession_noop(mailsession * session);
-	 int mailsession_build_folder_name(mailsession * session, const char * mb, const char * name, char ** result);
-	 int mailsession_create_folder(mailsession * session, const char * mb);
-	 int mailsession_delete_folder(mailsession * session, const char * mb);
-	 int mailsession_rename_folder(mailsession * session, const char * mb, const char * new_name);
-	int mailsession_check_folder(mailsession * session);
-	 int mailsession_examine_folder(mailsession * session, const char * mb);
-	 int mailsession_select_folder(mailsession * session, const char * mb);
-	 int mailsession_expunge_folder(mailsession * session);
-	 int mailsession_status_folder(mailsession * session, const char * mb, uint32_t * result_messages, uint32_t * result_recent, uint32_t * result_unseen);
-	 int mailsession_messages_number(mailsession * session, const char * mb, uint32_t * result);
-	 int mailsession_recent_number(mailsession * session, const char * mb, uint32_t * result);
-	 int mailsession_unseen_number(mailsession * session, const char * mb, uint32_t * result);
-	 int mailsession_list_folders(mailsession * session, const char * mb, mail_list ** result);
-	 int mailsession_lsub_folders(mailsession * session, const char * mb, mail_list ** result);
-	 int mailsession_subscribe_folder(mailsession * session, const char * mb);
-	 int mailsession_unsubscribe_folder(mailsession * session, const char * mb);
-	int mailsession_append_message(mailsession * session, const char * message, size_t size);
-	int mailsession_append_message_flags(mailsession * session, const char * message, size_t size, mail_flags * flags);
-	 int mailsession_copy_message(mailsession * session, uint32_t num, const char * mb);
-	 int mailsession_move_message(mailsession * session, uint32_t num, const char * mb);
-	 int mailsession_get_messages_list(mailsession * session, mailmessage_list ** result);
-	 int mailsession_get_envelopes_list(mailsession * session, mailmessage_list * result);
-	 int mailsession_remove_message(mailsession * session, uint32_t num);
-	 int mailsession_get_message(mailsession * session, uint32_t num, mailmessage ** result);
-	int mailsession_get_message_by_uid(mailsession * session, const char * uid, mailmessage ** result);
-	 int mailsession_login_sasl(mailsession * session, const char * auth_type, const char * server_fqdn, const char * local_ip_port, const char * remote_ip_port, const char * login, const char * auth_name, const char * password, const char * realm);
-	int mailmessage_generic_initialize(mailmessage * msg_info);
-	void mailmessage_generic_uninitialize(mailmessage * msg_info);
-	void mailmessage_generic_flush(mailmessage * msg_info);
-	void mailmessage_generic_fetch_result_free(mailmessage * msg_info, char * msg);
-	int mailmessage_generic_fetch(mailmessage * msg_info, char ** result, size_t * result_len);
-	int mailmessage_generic_fetch_header(mailmessage * msg_info, char ** result, size_t * result_len);
-	int mailmessage_generic_fetch_body(mailmessage * msg_info, char ** result, size_t * result_len);
-	int mailmessage_generic_get_bodystructure(mailmessage * msg_info, mailmime ** result);
-	int mailmessage_generic_fetch_section(mailmessage * msg_info, mailmime * mime, char ** result, size_t * result_len);
-	int mailmessage_generic_fetch_section_header(mailmessage * msg_info, mailmime * mime, char ** result, size_t * result_len);
-	int mailmessage_generic_fetch_section_mime(mailmessage * msg_info, mailmime * mime, char ** result, size_t * result_len);
-	int mailmessage_generic_fetch_section_body(mailmessage * msg_info, mailmime * mime, char ** result, size_t * result_len);
-	int mailmessage_generic_fetch_envelope(mailmessage * msg_info, mailimf_fields ** result);
-	int maildriver_generic_get_envelopes_list(mailsession * session, mailmessage_list * env_list);
-	int maildriver_env_list_to_msg_list(mailmessage_list * env_list, clist ** result);
-	int maildriver_imf_error_to_mail_error(int error);
-	char * maildriver_quote_mailbox(const char * mb);
-	int maildriver_env_list_to_msg_list_no_flags( mailmessage_list * env_list, clist ** result);
-	int maildriver_cache_clean_up(mail_cache_db * cache_db_env, mail_cache_db * cache_db_flags, mailmessage_list * env_list);
-	int maildriver_message_cache_clean_up(char * cache_dir, mailmessage_list * env_list, void function(char *) get_uid_from_filename);
-	mailmessage * mailmessage_new();
-	void mailmessage_free(mailmessage * info);
-	int mailmessage_init(mailmessage * msg_info, mailsession * session, mailmessage_driver * driver, uint32_t indx, size_t size);
-	int mailmessage_flush(mailmessage * info);
-	int mailmessage_check(mailmessage * info);
-	int mailmessage_fetch_result_free(mailmessage * msg_info, char * msg);
-	int mailmessage_fetch(mailmessage * msg_info, char ** result, size_t * result_len);
-	int mailmessage_fetch_header(mailmessage * msg_info, char ** result, size_t * result_len);
-	int mailmessage_fetch_body(mailmessage * msg_info, char ** result, size_t * result_len);
-	int mailmessage_fetch_size(mailmessage * msg_info, size_t * result);
-	int mailmessage_get_bodystructure(mailmessage * msg_info, mailmime ** result);
-	int mailmessage_fetch_section(mailmessage * msg_info, mailmime * mime, char ** result, size_t * result_len);
-	int mailmessage_fetch_section_header(mailmessage * msg_info, mailmime * mime, char ** result, size_t * result_len);
-	int mailmessage_fetch_section_mime(mailmessage * msg_info, mailmime * mime, char ** result, size_t * result_len);
-	int mailmessage_fetch_section_body(mailmessage * msg_info, mailmime * mime, char ** result, size_t * result_len);
-	int mailmessage_fetch_envelope(mailmessage * msg_info, mailimf_fields ** result);
-	int mailmessage_get_flags(mailmessage * msg_info, mail_flags ** result);
-	void mailmessage_resolve_single_fields(mailmessage * msg_info);
-	newsnntp * newsnntp_new(size_t nntp_progr_rate, progress_function * nntp_progr_fun);
-	void newsnntp_free(newsnntp * session);
-	void newsnntp_set_logger(newsnntp * session, void function(newsnntp * session, int log_type, const char * str, size_t size, void * context) logger, void * logger_context);
-	void newsnntp_set_progress_callback(newsnntp * f, mailprogress_function * progr_fun, void * context);
-	void newsnntp_set_timeout(newsnntp * session, time_t timeout);
-	time_t newsnntp_get_timeout(newsnntp * session);
-	int newsnntp_connect(newsnntp * session, mailstream * s);
-	int newsnntp_quit(newsnntp * session);
-	int newsnntp_head(newsnntp * session, uint32_t indx, char ** result, size_t * result_len);
-	void newsnntp_head_free(char * str);
-	int newsnntp_article(newsnntp * session, uint32_t indx, char ** result, size_t * result_len);
-	int newsnntp_article_by_message_id(newsnntp * session, char * msg_id, char ** result, size_t * result_len);
-	void newsnntp_article_free(char * str);
-	int newsnntp_body(newsnntp * session, uint32_t indx, char ** result, size_t * result_len);
-	void newsnntp_body_free(char * str);
-	int newsnntp_mode_reader(newsnntp * session);
-	int newsnntp_date(newsnntp * session, tm * tm);
-	int newsnntp_authinfo_username(newsnntp * session, const char * username);
-	int newsnntp_authinfo_password(newsnntp * session, const char * password);
-	int newsnntp_post(newsnntp * session, const char * message, size_t size);
-	int newsnntp_group(newsnntp * session, const char * groupname, newsnntp_group_info ** info);
-	void newsnntp_group_free(newsnntp_group_info * info);
-	int newsnntp_list(newsnntp * session, clist ** result);
-	void newsnntp_list_free(clist * l);
-	int newsnntp_list_overview_fmt(newsnntp * session, clist ** result);
-	void newsnntp_list_overview_fmt_free(clist * l);
-	int newsnntp_list_active(newsnntp * session, const char * wildmat, clist ** result);
-	void newsnntp_list_active_free(clist * l);
-	int newsnntp_list_active_times(newsnntp * session, clist ** result);
-	void newsnntp_list_active_times_free(clist * l);
-	int newsnntp_list_distribution(newsnntp * session, clist ** result);
-	void newsnntp_list_distribution_free(clist * l);
-	int newsnntp_list_distrib_pats(newsnntp * session, clist ** result);
-	void newsnntp_list_distrib_pats_free(clist * l);
-	int newsnntp_list_newsgroups(newsnntp * session, const char * pattern, clist ** result);
-	void newsnntp_list_newsgroups_free(clist * l);
-	int newsnntp_list_subscriptions(newsnntp * session, clist ** result);
-	void newsnntp_list_subscriptions_free(clist * l);
-	int newsnntp_listgroup(newsnntp * session, const char * group_name, clist ** result);
-	void newsnntp_listgroup_free(clist * l);
-	int newsnntp_xhdr_single(newsnntp * session, const char * header, uint32_t article, clist ** result);
-	int newsnntp_xhdr_range(newsnntp * session, const char * header, uint32_t rangeinf, uint32_t rangesup, clist ** result);
-	void newsnntp_xhdr_free(clist * l);
-	int newsnntp_xover_single(newsnntp * session, uint32_t article, newsnntp_xover_resp_item ** result);
-	int newsnntp_xover_range(newsnntp * session, uint32_t rangeinf, uint32_t rangesup, clist ** result); void xover_resp_item_free(newsnntp_xover_resp_item * n);
-	void newsnntp_xover_resp_list_free(clist * l);
-	int newsnntp_authinfo_generic(newsnntp * session, const char * authentificator, const char * arguments);
-
 	enum {
 	  NEWSNNTP_NO_ERROR = 0,
 	  NEWSNNTP_WARNING_REQUEST_AUTHORIZATION_USERNAME=1, /* DEPRECATED, use ERROR instead */
@@ -1161,40 +797,6 @@ extern(C)
 	  clist * ovr_others;
 	}
 
-	int newsnntp_socket_connect(newsnntp * f, const char * server, uint16_t port);
-	int newsnntp_ssl_connect(newsnntp * f, const char * server, uint16_t port);
-	int newsnntp_ssl_connect_with_callback(newsnntp * f, const char * server, uint16_t port, void function(mailstream_ssl_context * ssl_context, void * data) callback, void * data);
-	int mailpop3_ssl_connect(mailpop3 * f, const char * server, uint16_t port);
-	int mailpop3_ssl_connect_with_callback(mailpop3 * f, const char * server, uint16_t port, void function(mailstream_ssl_context * ssl_context, void * data) callback, void * data);
-
-	enum POP3_STRING_SIZE=513;
-
-	mailpop3 * mailpop3_new(size_t pop3_progr_rate, progress_function * pop3_progr_fun);
-	void mailpop3_free(mailpop3 * f);
-	void mailpop3_set_timeout(mailpop3 * f, time_t timeout);
-	time_t mailpop3_get_timeout(mailpop3 * f);
-	void mailpop3_set_progress_callback(mailpop3 * f, mailprogress_function * progr_fun, void * context);
-	int mailpop3_connect(mailpop3 * f, mailstream * s);
-	int mailpop3_quit(mailpop3 * f);
-	int mailpop3_apop(mailpop3 * f, const char * user, const char * password);
-	int mailpop3_user(mailpop3 * f, const char * user);
-	int mailpop3_pass(mailpop3 * f, const char * password);
-	int mailpop3_list(mailpop3 * f, carray ** result);
-	int mailpop3_retr(mailpop3 * f, uint indx, char ** result, size_t * result_len);
-	int mailpop3_top(mailpop3 * f, uint indx, uint count, char ** result, size_t * result_len);
-	int mailpop3_dele(mailpop3 * f, uint indx);
-	int mailpop3_noop(mailpop3 * f);
-	int mailpop3_rset(mailpop3 * f);
-	void mailpop3_top_free(char * str);
-	void mailpop3_retr_free(char * str);
-	int mailpop3_get_msg_info(mailpop3 * f, uint indx, mailpop3_msg_info ** result);
-	int mailpop3_capa(mailpop3 * f, clist ** result);
-	void mailpop3_capa_resp_free(clist * capa_list);
-	int mailpop3_stat(mailpop3 * f, mailpop3_stat_response ** result);
-	void mailpop3_stat_resp_free(mailpop3_stat_response * stat_result);
-	int mailpop3_stls(mailpop3 * f);
-	int mailpop3_auth(mailpop3 * f, const char * auth_type, const char * server_fqdn, const char * local_ip_port, const char * remote_ip_port, const char * login, const char * auth_name, const char * password, const char * realm);
-	void mailpop3_set_logger(mailpop3 * session, void function(mailpop3 * session, int log_type, const char * str, size_t size, void * context) logger, void * logger_context);
 
 	enum {
 	  MAILPOP3_NO_ERROR = 0,
@@ -1272,74 +874,6 @@ extern(C)
 	}
 
 	
-	int mailpop3_socket_connect(mailpop3 * f, const char * server, uint16_t port);
-	int mailpop3_socket_starttls(mailpop3 * f);
-	int mailpop3_socket_starttls_with_callback(mailpop3 * f, void function(mailstream_ssl_context * ssl_context, void * data)  callback);
-	int mailpop3_login_apop(mailpop3 * f, const char * user, const char * password);
-	int mailpop3_login(mailpop3 * f, const char * user, const char * password);
-	int mailpop3_header(mailpop3 * f, uint32_t indx, char ** result, size_t * result_len);
-	void mailpop3_header_free(char * str);
-	int mailmime_transfer_encoding_get(mailmime_fields * fields);
-	mailmime_disposition * mailmime_disposition_new_filename(int type, char * filename);
-	mailmime_fields * mailmime_fields_new_empty();
-	int mailmime_fields_add(mailmime_fields * fields, mailmime_field * field);
-	mailmime_fields * mailmime_fields_new_with_data(mailmime_mechanism * encoding, char * id, char * description, mailmime_disposition * disposition, mailmime_language * language);
-	mailmime_fields * mailmime_fields_new_with_version(mailmime_mechanism * encoding, char * id, char * description,				  mailmime_disposition * disposition,  mailmime_language * language);
-	mailmime_content * mailmime_get_content_message();
-	mailmime_content * mailmime_get_content_text();
-	
-	//alias mailmime_content_new_with_str= mailmime_get_content;
-	mailmime_data * mailmime_data_new_data(int encoding, int encoded, const char * data, size_t length);
-	mailmime_data * mailmime_data_new_file(int encoding, int encoded, char * filename);
-	char * mailmime_content_charset_get(mailmime_content * content);
-	char * mailmime_content_param_get(mailmime_content * content, char * name);
-	int mailmime_parse(const char * message, size_t length, size_t * indx, mailmime ** result);
-	int mailmime_get_section(mailmime * mime, mailmime_section * section, mailmime ** result);
-	char * mailmime_extract_boundary(mailmime_content * content_type);
-	int mailmime_base64_body_parse(const char * message, size_t length, size_t * indx, char ** result, size_t * result_len);
-	int mailmime_quoted_printable_body_parse(const char * message, size_t length, size_t * indx, char ** result, size_t * result_len, int in_header);
-	int mailmime_binary_body_parse(const char * message, size_t length, size_t * indx, char ** result, size_t * result_len);
-	int mailmime_part_parse(const char * message, size_t length, size_t * indx, int encoding, char ** result, size_t * result_len);
-	int mailmime_get_section_id(mailmime * mime, mailmime_section ** result);
-	int mailmime_disposition_parse(const char * message, size_t length, size_t * indx, mailmime_disposition ** result);
-	int mailmime_disposition_type_parse(const char * message, size_t length, size_t * indx, mailmime_disposition_type ** result);
-	int mailmime_disposition_guess_type(const char * message, size_t length, size_t indx);
-	int mailmime_fields_write(FILE * f, int * col,  mailmime_fields * fields);
-	int mailmime_content_write(FILE * f, int * col, mailmime_content * content);
-	int mailmime_content_type_write(FILE * f, int * col, mailmime_content * content);
-
-	int mailmime_write(FILE * f, int * col, mailmime * build_info);
-	int mailmime_quoted_printable_write(FILE * f, int * col, int istext, const char * text, size_t size);
-	int mailmime_base64_write(FILE * f, int * col, const char * text, size_t size);
-	int mailmime_data_write(FILE * f, int * col, mailmime_data * data, int istext);
-	int mailmime_content_parse(const char * message, size_t length, size_t * indx, mailmime_content ** result);
-	int mailmime_description_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailmime_location_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailmime_encoding_parse(const char * message, size_t length, size_t * indx, mailmime_mechanism ** result);
-	int mailmime_field_parse(mailimf_optional_field * field, mailmime_field ** result);
-	int mailmime_id_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailmime_fields_parse(mailimf_fields * fields, mailmime_fields ** result);
-	int mailmime_version_parse(const char * message, size_t length, size_t * indx, uint32_t * result);
-	int mailmime_extension_token_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailmime_parameter_parse(const char * message, size_t length, size_t * indx, mailmime_parameter ** result);
-	int mailmime_value_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailmime_language_parse(const char * message, size_t length, size_t * indx, mailmime_language ** result);
-	int mailmime_fields_write_file(FILE * f, int * col, mailmime_fields * fields);
-	int	mailmime_content_write_file(FILE * f, int * col, mailmime_content * content);
-	int mailmime_content_type_write_file(FILE * f, int * col, mailmime_content * content);
-	int mailmime_write_file(FILE * f, int * col, mailmime * build_info);
-	int mailmime_quoted_printable_write_file(FILE * f, int * col, int istext, const char * text, size_t size);
-	int mailmime_base64_write_file(FILE * f, int * col, const char * text, size_t size);
-	int mailmime_data_write_file(FILE * f, int * col, mailmime_data * data, int istext);
-	int mailmime_fields_write(FILE * f, int * col, mailmime_fields * fields);
-	int mailmime_content_write(FILE * f, int * col, mailmime_content * content);
-
-	int mailmime_content_type_write_mem(MMAPString * f, int * col, mailmime_content * content);
-	int mailmime_write_mem(MMAPString * f, int * col, mailmime * build_info);
-	int mailmime_quoted_printable_write_mem(MMAPString * f, int * col, int istext, const char * text, size_t size);
-	int mailmime_base64_write_mem(MMAPString * f, int * col, const char * text, size_t size);
-	int mailmime_data_write_mem(MMAPString * f, int * col,  mailmime_data * data, int istext);
-
 	enum {
 	  MAILMIME_COMPOSITE_TYPE_ERROR,
 	  MAILMIME_COMPOSITE_TYPE_MESSAGE,
@@ -1445,47 +979,11 @@ extern(C)
 	  tp_data_t tp_data;
 	}
 
-	void mailmime_attribute_free(char * attribute);
-	mailmime_composite_type * mailmime_composite_type_new(int ct_type, char * ct_token);
-	void mailmime_composite_type_free(mailmime_composite_type * ct);
-	mailmime_content * mailmime_content_new(mailmime_type * ct_type, char * ct_subtype, clist * ct_parameters);
-	void mailmime_content_free(mailmime_content * content);
-	void mailmime_description_free(char * description);
-	void mailmime_location_free(char * location);
-	mailmime_discrete_type * mailmime_discrete_type_new(int dt_type, char * dt_extension);
-	void mailmime_discrete_type_free(mailmime_discrete_type * discrete_type);
-	void mailmime_encoding_free(mailmime_mechanism * encoding);
-	void mailmime_extension_token_free(char * extension);
-	void mailmime_id_free(char * id);
-	mailmime_mechanism * mailmime_mechanism_new(int enc_type, char * enc_token);
-	void mailmime_mechanism_free(mailmime_mechanism * mechanism);
-	mailmime_parameter * mailmime_parameter_new(char * pa_name, char * pa_value);
-	void mailmime_parameter_free(mailmime_parameter * parameter);
-	void mailmime_subtype_free(char * subtype);
-	void mailmime_token_free(char * token);
-	mailmime_type * mailmime_type_new(int tp_type,  mailmime_discrete_type * tp_discrete_type,  mailmime_composite_type * tp_composite_type);
-	void mailmime_type_free(mailmime_type * type);
-	void mailmime_value_free(char * value);
-
-	struct mailmime_language {
-	  clist * lg_list; /* atom (char *) */
-	};
-
-	
-	mailmime_language * mailmime_language_new(clist * lg_list);
-	void mailmime_language_free( mailmime_language * lang);
-	mailmime_field * mailmime_field_new(int fld_type, mailmime_content * fld_content, mailmime_mechanism * fld_encoding, char * fld_id, char * fld_description, uint32_t fld_version, mailmime_disposition * fld_disposition, mailmime_language * fld_language, char * fld_location);
-	void mailmime_field_free(mailmime_field * field);
-	mailmime_fields * mailmime_fields_new(clist * fld_list);
-	void mailmime_fields_free(mailmime_fields * fields);
-
 
 	struct mailmime_multipart_body {
 	  clist * bd_list;
 	};
 
-	mailmime_multipart_body * mailmime_multipart_body_new(clist * bd_list);
-	void mailmime_multipart_body_free(mailmime_multipart_body * mp_body);
 
 
 	enum {
@@ -1510,8 +1008,6 @@ extern(C)
 	  dt_data_t dt_data;
 	};
 
-	mailmime_data * mailmime_data_new(int dt_type, int dt_encoding, int dt_encoded, const char * dt_data, size_t dt_length, char * dt_filename);
-	void mailmime_data_free(mailmime_data * mime_data);
 
 
 	enum {
@@ -1562,9 +1058,6 @@ extern(C)
 	};
 
 	
-	mailmime * mailmime_new(int mm_type, const char * mm_mime_start, size_t mm_length, mailmime_fields * mm_mime_fields, mailmime_content * mm_content_type, mailmime_data * mm_body, mailmime_data * mm_preamble, mailmime_data * mm_epilogue, clist * mm_mp_list, mailimf_fields * mm_fields, mailmime * mm_msg_mime);
-	
-	void mailmime_free(mailmime * mime);
 
 	struct mailmime_encoded_word {
 	  char * wd_charset;
@@ -1572,10 +1065,6 @@ extern(C)
 	};
 
 	
-	mailmime_encoded_word * mailmime_encoded_word_new(char * wd_charset, char * wd_text);
-	void mailmime_encoded_word_free(mailmime_encoded_word * ew);
-	void mailmime_charset_free(char * charset);
-	void mailmime_encoded_text_free(char * text);
 
 	struct mailmime_disposition {
 	  mailmime_disposition_type * dsp_type;
@@ -1619,29 +1108,11 @@ extern(C)
 	  pa_data_t pa_data;
 	}
 
-	mailmime_disposition * mailmime_disposition_new(mailmime_disposition_type * dsp_type, clist * dsp_parms);
-	void mailmime_disposition_free(mailmime_disposition * dsp);
-	mailmime_disposition_type * mailmime_disposition_type_new(int dt_type, char * dt_extension);
-	void mailmime_disposition_type_free(mailmime_disposition_type * dsp_type);
-	mailmime_disposition_parm * mailmime_disposition_parm_new(int pa_type, char * pa_filename, char * pa_creation_date, char * pa_modification_date,
-				      char * pa_read_date, size_t pa_size, mailmime_parameter * pa_parameter);
-
-	void mailmime_disposition_parm_free( mailmime_disposition_parm * dsp_parm);
-	void mailmime_filename_parm_free(char * filename);
-	void mailmime_creation_date_parm_free(char * date);
-	void mailmime_modification_date_parm_free(char * date);
-	void mailmime_read_date_parm_free(char * date);
-	void mailmime_quoted_date_time_free(char * date);
-
 	struct mailmime_section {
 	  clist * sec_list; /* list of (uint32 *) */
 	};
 
 	
-	mailmime_section * mailmime_section_new(clist * list);
-	void mailmime_section_free(mailmime_section * section);
-	void mailmime_decoded_part_free(char * part);
-
 	struct mailmime_single_fields {
 	   mailmime_content * fld_content;
 	  char * fld_content_charset;
@@ -1661,20 +1132,6 @@ extern(C)
 	  char * fld_location;
 	};
 
-	int mailmime_encoded_phrase_parse(const char * default_fromcode, const char * message, size_t length,
-	    size_t * indx, const char * tocode, char ** result);
-
-	int mailmime_encoded_word_parse(const char * message, size_t length, size_t * indx, mailmime_encoded_word ** result,
-	                            int * p_has_fwd);
-
-
-	int mailmime_fields_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, mailmime_fields * fields);
-	int mailmime_content_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, mailmime_content * content);
-	int mailmime_content_type_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, mailmime_content * content);
-	int mailmime_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, mailmime * build_info);
-	int mailmime_quoted_printable_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, int istext, const char * text, size_t size);
-	int mailmime_base64_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, const char * text, size_t size);
-	int mailmime_data_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, mailmime_data * mime_data, int istext);
 
 	enum {
 	  MAILMH_NO_ERROR = 0,
@@ -4334,12 +3791,7 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	};
 
 	
-	mailimap_response_info * mailimap_response_info_new();
-	void mailimap_response_info_free( mailimap_response_info * resp_info);
-
-
-	/* these are the possible returned error codes */
-
+	
 	enum {
 	  MAILIMAP_NO_ERROR = 0,
 	  MAILIMAP_NO_ERROR_AUTHENTICATED = 1,
@@ -4387,15 +3839,7 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	};
 
 
-	int mailimap_uid_expunge_send(mailstream * fd, mailimap_set * set);
-
-	int mailimap_fetch_qresync_vanished(mailimap * session,
-	                                    mailimap_set * set,
-	                                     mailimap_fetch_type * fetch_type, uint64_t mod_sequence_value, int vanished,
-	                                    clist ** fetch_result,  mailimap_qresync_vanished ** p_vanished);
-
-	int mailimap_uid_fetch_qresync_vanished(mailimap * session,  mailimap_set * set, mailimap_fetch_type * fetch_type, uint64_t mod_sequence_value, int vanished, clist ** fetch_result, mailimap_qresync_vanished ** p_vanished);
-
+	
 	enum {
 	  MAILIMAP_NAMESPACE_TYPE_NAMESPACE
 	};
@@ -4406,26 +3850,18 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	};
 
 	
-	mailimap_namespace_response_extension * mailimap_namespace_response_extension_new(char * name, clist * values);
-
 	
-	void mailimap_namespace_response_extension_free( mailimap_namespace_response_extension * ext);
-
 	struct mailimap_namespace_info {
 	  char * ns_prefix; /* != NULL */
 	  char ns_delimiter;
 	  clist * ns_extensions; /* can be NULL, list of mailimap_namespace_response_extension */
 	};
 
-	mailimap_namespace_info * mailimap_namespace_info_new(char * prefix, char delimiter, clist * extensions);
-	void mailimap_namespace_info_free(mailimap_namespace_info * info);
-
+	
 	struct mailimap_namespace_item {
 	  clist * ns_data_list; /* != NULL, list of mailimap_namespace_info */
 	};
 
-	mailimap_namespace_item * mailimap_namespace_item_new(clist * data_list);
-	void mailimap_namespace_item_free(mailimap_namespace_item * item);
 
 	struct mailimap_namespace_data {
 	  mailimap_namespace_item * ns_personal; /* can be NULL */
@@ -4433,16 +3869,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  mailimap_namespace_item * ns_shared; /* can be NULL */
 	};
 
-	mailimap_namespace_data * mailimap_namespace_data_new( mailimap_namespace_item * personal, mailimap_namespace_item * other,  mailimap_namespace_item * _shared);
-
-	void mailimap_namespace_data_free(mailimap_namespace_data * ns);
-	__gshared mailimap_extension_api mailimap_extension_quota;
-	void mailimap_quota_free(mailimap_extension_data * ext_data);
-	int mailimap_quota_getquotaroot(mailimap * session, const char * list_mb, mailimap_quota_complete_data ** result);
-	int mailimap_ssl_connect(mailimap * f, const char * server, uint16_t port);
-	int mailimap_ssl_connect_voip(mailimap * f, const char * server, uint16_t port, int voip_enabled);
-	int mailimap_ssl_connect_with_callback(mailimap * f, const char * server, uint16_t port, void function(mailstream_ssl_context * ssl_context, void * data) callback, void * data);
-	int mailimap_ssl_connect_voip_with_callback(mailimap * f, const char * server, uint16_t port, int voip_enabled, void function(mailstream_ssl_context * ssl_context, void * data) callback, void * data);
 
 
 	enum {
@@ -4480,76 +3906,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  chash * mdir_msg_hash;
 	};
 
-
-	maildir * maildir_new(const char * path);
-	void maildir_free(maildir * md);
-	int maildir_update( maildir * md);
-	int maildir_message_add_uid( maildir * md, const char * message, size_t size, char * uid, size_t max_uid_len);
-	int maildir_message_add( maildir * md, const char * message, size_t size);
-	int maildir_message_add_file_uid( maildir * md, int fd, char * uid, size_t max_uid_len);
-	int maildir_message_add_file( maildir * md, int fd);
-	char * maildir_message_get( maildir * md, const char * uid);
-	int maildir_message_remove( maildir * md, const char * uid);
-	int maildir_message_change_flags( maildir * md, const char * uid, int new_flags);
-	int mailimf_string_write_mem(MMAPString * f, int * col, const char * str, size_t length);
-	int mailimf_fields_write_mem(MMAPString * f, int * col,  mailimf_fields * fields);
-	int mailimf_envelope_fields_write_mem(MMAPString * f, int * col,  mailimf_fields * fields);
-	int mailimf_field_write_mem(MMAPString * f, int * col, mailimf_field * field);
-	int mailimf_quoted_string_write_mem(MMAPString * f, int * col, const char * string, size_t len);
-	int mailimf_address_list_write_mem(MMAPString * f, int * col,  mailimf_address_list * addr_list);
-	int mailimf_mailbox_list_write_mem(MMAPString * f, int * col,  mailimf_mailbox_list * mb_list);
-	int mailimf_header_string_write_mem(MMAPString * f, int * col, const char * str, size_t length);
-	int mailimf_string_write(FILE * f, int * col, const char * str, size_t length);
-	int mailimf_fields_write(FILE * f, int * col, mailimf_fields * fields);
-	int mailimf_envelope_fields_write(FILE * f, int * col,  mailimf_fields * fields);
-	int mailimf_field_write(FILE * f, int * col,  mailimf_field * field);
-	int mailimf_quoted_string_write(FILE * f, int * col, const char * string, size_t len);
-	int mailimf_address_list_write(FILE * f, int * col,  mailimf_address_list * addr_list);
-	int mailimf_mailbox_list_write(FILE * f, int * col,  mailimf_mailbox_list * mb_list);
-	int mailimf_header_string_write(FILE * f, int * col, const char * str, size_t length);
-	int mailimf_string_write_file(FILE * f, int * col, const char * str, size_t length);
-	int mailimf_fields_write_file(FILE * f, int * col,  mailimf_fields * fields);
-	int mailimf_envelope_fields_write_file(FILE * f, int * col,  mailimf_fields * fields);
-	int mailimf_field_write_file(FILE * f, int * col, mailimf_field * field);
-	int mailimf_quoted_string_write_file(FILE * f, int * col, const char * string, size_t len);
-	int mailimf_address_list_write_file(FILE * f, int * col,  mailimf_address_list * addr_list);
-	int mailimf_mailbox_list_write_file(FILE * f, int * col,  mailimf_mailbox_list * mb_list);
-	int mailimf_header_string_write_file(FILE * f, int * col, const char * str, size_t length);
-	int mailimf_message_parse(const char * message, size_t length, size_t * indx, mailimf_message ** result);
-	int mailimf_body_parse(const char * message, size_t length, size_t * indx, mailimf_body ** result);
-	int mailimf_fields_parse(const char * message, size_t length, size_t * indx,  mailimf_fields ** result);
-	int mailimf_mailbox_list_parse(const char * message, size_t length, size_t * indx,  mailimf_mailbox_list ** result);
-	int mailimf_address_list_parse(const char * message, size_t length, size_t * indx, mailimf_address_list ** result);
-	int mailimf_address_parse(const char * message, size_t length, size_t * indx, mailimf_address ** result);
-	int mailimf_mailbox_parse(const char * message, size_t length, size_t * indx, mailimf_mailbox ** result);
-	int mailimf_date_time_parse(const char * message, size_t length, size_t * indx,  mailimf_date_time ** result);
-	int mailimf_envelope_fields_parse(const char * message, size_t length, size_t * indx, mailimf_fields ** result);
-	int mailimf_ignore_field_parse(const char * message, size_t length, size_t * indx);
-	int mailimf_envelope_and_optional_fields_parse(const char * message, size_t length, size_t * indx,  mailimf_fields ** result);
-	int mailimf_optional_fields_parse(const char * message, size_t length, size_t * indx, mailimf_fields ** result);
-	int mailimf_fws_parse(const char * message, size_t length, size_t * indx);
-	int mailimf_cfws_parse(const char * message, size_t length, size_t * indx);
-	int mailimf_char_parse(const char * message, size_t length, size_t * indx, char token);
-	int mailimf_unstrict_char_parse(const char * message, size_t length, size_t * indx, char token);
-	int mailimf_crlf_parse(const char * message, size_t length, size_t * indx);
-	int mailimf_custom_string_parse(const char * message, size_t length, size_t * indx, char ** result, int function(char)is_custom_char);
-	int mailimf_token_case_insensitive_len_parse(const char * message, size_t length, size_t * indx, char * token, size_t token_length);
-
-	auto mailimf_token_case_insensitive_parse(T)(T message, T length,T indx, Ttoken)
-	{
-		return mailimf_token_case_insensitive_len_parse(message, length, indx, token, strlen(token));
-	}
-
-	int mailimf_quoted_string_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailimf_number_parse(const char * message, size_t length, size_t * indx, uint32_t * result);
-	int mailimf_msg_id_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailimf_msg_id_list_parse(const char * message, size_t length, size_t * indx, clist ** result);
-	int mailimf_word_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailimf_atom_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailimf_fws_atom_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailimf_fws_word_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailimf_fws_quoted_string_parse(const char * message, size_t length, size_t * indx, char ** result);
-	int mailimf_references_parse(const char * message, size_t length, size_t * indx,  mailimf_references ** result);
 	struct mailimf_date_time {
 	  int dt_day;
 	  int dt_month;
@@ -4846,8 +4202,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	}
 
 	
-	mailimf_path * mailimf_path_new(char * pt_addr_spec);
-	void mailimf_path_free( mailimf_path * path);
 	struct mailimf_optional_field {
 	  char * fld_name;  /* != NULL */
 	  char * fld_value; /* != NULL */
@@ -4874,29 +4228,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  mailimf_keywords * fld_keywords;        /* can be NULL */
 	};
 
-	void mailimf_atom_free(char * atom);
-	void mailimf_dot_atom_free(char * dot_atom);
-	void mailimf_dot_atom_text_free(char * dot_atom);
-	void mailimf_quoted_string_free(char * quoted_string);
-	void mailimf_word_free(char * word);
-	void mailimf_phrase_free(char * phrase);
-	void mailimf_unstructured_free(char * unstructured);
-	void mailimf_angle_addr_free(char * angle_addr);
-	void mailimf_display_name_free(char * display_name);
-	void mailimf_addr_spec_free(char * addr_spec);
-	void mailimf_local_part_free(char * local_part);
-	void mailimf_domain_free(char * domain);
-	void mailimf_domain_literal_free(char * domain);
-	void mailimf_msg_id_free(char * msg_id);
-	void mailimf_id_left_free(char * id_left);
-	void mailimf_id_right_free(char * id_right);
-	void mailimf_no_fold_quote_free(char * nfq);
-	void mailimf_no_fold_literal_free(char * nfl);
-	void mailimf_field_name_free(char * field_name);
-
-
-	/* these are the possible returned error codes */
-
 	enum {
 	  MAILIMF_NO_ERROR = 0,
 	  MAILIMF_ERROR_PARSE,
@@ -4904,42 +4235,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  MAILIMF_ERROR_INVAL,
 	  MAILIMF_ERROR_FILE
 	}
-
-	int mailimf_string_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, const char * str, size_t length);
-	int mailimf_fields_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, mailimf_fields * fields);
-	int mailimf_envelope_fields_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col,  mailimf_fields * fields);
-	int mailimf_field_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col,  mailimf_field * field);
-	int mailimf_quoted_string_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, const char * string, size_t len);
-	int mailimf_address_list_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, mailimf_address_list * addr_list);
-	int mailimf_mailbox_list_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, mailimf_mailbox_list * mb_list);
-	int mailimf_header_string_write_driver(int function(void *, const char *, size_t) do_write, void * data, int * col, const char * str, size_t length);
-	mailimf_mailbox_list * mailimf_mailbox_list_new_empty();
-	int mailimf_mailbox_list_add( mailimf_mailbox_list * mailbox_list, mailimf_mailbox * mb);
-	int mailimf_mailbox_list_add_parse(mailimf_mailbox_list * mailbox_list, const (char *) mb_str);
-	int mailimf_mailbox_list_add_mb( mailimf_mailbox_list * mailbox_list, char * display_name, char * address);
-	mailimf_address_list * mailimf_address_list_new_empty();
-	int mailimf_address_list_add( mailimf_address_list * address_list, mailimf_address * addr);
-	int mailimf_address_list_add_parse( mailimf_address_list * address_list, char * addr_str);
-	int mailimf_address_list_add_mb( mailimf_address_list * address_list, char * display_name, char * address);
-	int mailimf_resent_fields_add_data(mailimf_fields * fields, mailimf_date_time * resent_date,
-	mailimf_mailbox_list * resent_from,  mailimf_mailbox * resent_sender,  mailimf_address_list * resent_to,
-	mailimf_address_list * resent_cc,  mailimf_address_list * resent_bcc, char * resent_msg_id);
-	mailimf_fields * mailimf_resent_fields_new_with_data_all( mailimf_date_time * resent_date,  mailimf_mailbox_list * resent_from,
-	mailimf_mailbox * resent_sender,  mailimf_address_list * resent_to,  mailimf_address_list * resent_cc, mailimf_address_list * resent_bcc,
-	char * resent_msg_id);
-	mailimf_fields * mailimf_resent_fields_new_with_data( mailimf_mailbox_list * from, mailimf_mailbox * sender, mailimf_address_list * to, mailimf_address_list * cc, mailimf_address_list * bcc);
-	mailimf_fields * mailimf_fields_new_empty();
-	int mailimf_fields_add( mailimf_fields * fields,  mailimf_field * field);
-	int mailimf_fields_add_data( mailimf_fields * fields,  mailimf_date_time * date, mailimf_mailbox_list * from, mailimf_mailbox * sender,  mailimf_address_list * reply_to,  mailimf_address_list * to,  mailimf_address_list * cc,  mailimf_address_list * bcc, char * msg_id, clist * in_reply_to, clist * references, char * subject);
-	mailimf_fields * mailimf_fields_new_with_data_all( mailimf_date_time * date, mailimf_mailbox_list * from, mailimf_mailbox * sender,  mailimf_address_list * reply_to,  mailimf_address_list * to, mailimf_address_list * cc, mailimf_address_list * bcc, char * message_id, clist * in_reply_to, clist * references, char * subject);
-	mailimf_fields * mailimf_fields_new_with_data( mailimf_mailbox_list * from,  mailimf_mailbox * sender, mailimf_address_list * reply_to, mailimf_address_list * to,  mailimf_address_list * cc,  mailimf_address_list * bcc, clist * in_reply_to, clist * references, char * subject);
-	char * mailimf_get_message_id();
-	mailimf_date_time * mailimf_get_current_date();
-	mailimf_date_time * mailimf_get_date(time_t time);
-	void mailimf_single_fields_init(mailimf_single_fields * single_fields,  mailimf_fields * fields);
-	mailimf_single_fields * mailimf_single_fields_new( mailimf_fields * fields);
-	void mailimf_single_fields_free( mailimf_single_fields * single_fields);
-	mailimf_field * mailimf_field_new_custom(char * name, char * value);
 
 	struct mailprivacy {
 	  char * tmp_dir;               /* working tmp directory */
@@ -4976,105 +4271,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  ERROR_PASSPHRASE_FILE
 	};
 
-	int mailprivacy_spawn_and_wait(char * command, char * passphrase, char * stdoutfile, char * stderrfile, int * bad_passphrase);
-	void mailprivacy_mime_clear( mailmime * mime);
-	FILE * mailprivacy_get_tmp_file( mailprivacy * privacy, char * filename, size_t size);
-	int mailprivacy_get_tmp_filename( mailprivacy * privacy, char * filename, size_t size);
-	mailmime * mailprivacy_new_file_part( mailprivacy * privacy, char * filename, char * default_content_type, int default_encoding);
-	int mailmime_substitute(mailmime * old_mime,  mailmime * new_mime);
-	int mailprivacy_fetch_mime_body_to_file(mailprivacy * privacy, char * filename, size_t size, mailmessage * msg, mailmime * mime);
-	int mailprivacy_get_part_from_file( mailprivacy * privacy, int check_privacy, int reencode, char * filename, mailmime ** result_mime);
-	int mail_quote_filename(char * result, size_t size, char * path);
-	void mailprivacy_prepare_mime(mailmime * mime);
-	char * mailprivacy_dup_imf_file(mailprivacy * privacy, char * source_filename);
-	mailmime_fields * mailprivacy_mime_fields_dup(mailprivacy * privacy, mailmime_fields * mime_fields);
-	mailmime_parameter * mailmime_parameter_dup(mailmime_parameter * param);
-	mailmime_composite_type * mailmime_composite_type_dup( mailmime_composite_type * composite_type);
-	mailmime_discrete_type * mailmime_discrete_type_dup( mailmime_discrete_type * discrete_type);
-	mailmime_type * mailmime_type_dup( mailmime_type * type);
-	mailmime_content * mailmime_content_dup( mailmime_content * content);
-	int mailprivacy_fetch_decoded_to_file( mailprivacy * privacy, char * filename, size_t size, mailmessage * msg, mailmime * mime);
-	int mailprivacy_get_mime( mailprivacy * privacy, int check_privacy, int reencode, char * content, size_t content_len, mailmime ** result_mime);
-	int mailprivacy_smime_init(mailprivacy * privacy);
-	void mailprivacy_smime_done( mailprivacy * privacy);
-	void mailprivacy_smime_set_cert_dir(mailprivacy * privacy, char * directory);
-	void mailprivacy_smime_set_CA_dir(mailprivacy * privacy, char * directory);
-	void mailprivacy_smime_set_CA_check(mailprivacy * privacy, int enabled);
-	void mailprivacy_smime_set_store_cert(mailprivacy * privacy, int enabled);
-	void mailprivacy_smime_set_private_keys_dir( mailprivacy * privacy, char * directory);
-	clist * mailprivacy_smime_encryption_id_list( mailprivacy * privacy, mailmessage * msg);
-	void mailprivacy_smime_encryption_id_list_clear( mailprivacy * privacy, mailmessage * msg);
-	int mailprivacy_smime_set_encryption_id(mailprivacy * privacy, char * user_id, char * passphrase);
-	mailprivacy * mailprivacy_new(char * tmp_dir, int make_alternative);
-	void mailprivacy_free(mailprivacy * privacy);
-	int mailprivacy_msg_get_bodystructure( mailprivacy * privacy, mailmessage * msg_info, mailmime ** result);
-	void mailprivacy_msg_flush( mailprivacy * privacy, mailmessage * msg_info);
-	int mailprivacy_msg_fetch_section(mailprivacy * privacy, mailmessage * msg_info, mailmime * mime, char ** result, size_t * result_len);
-	int mailprivacy_msg_fetch_section_header( mailprivacy * privacy, mailmessage * msg_info,  mailmime * mime, char ** result, size_t * result_len);
-	int mailprivacy_msg_fetch_section_mime( mailprivacy * privacy, mailmessage * msg_info,  mailmime * mime, char ** result, size_t * result_len);
-	int mailprivacy_msg_fetch_section_body(mailprivacy * privacy, mailmessage * msg_info, mailmime * mime, char ** result, size_t * result_len);
-	void mailprivacy_msg_fetch_result_free(mailprivacy * privacy, mailmessage * msg_info, char * msg);
-	int mailprivacy_msg_fetch( mailprivacy * privacy, mailmessage * msg_info, char ** result, size_t * result_len);
-	int mailprivacy_msg_fetch_header( mailprivacy * privacy, mailmessage * msg_info, char ** result, size_t * result_len);
-	int mailprivacy_register( mailprivacy * privacy,  mailprivacy_protocol * protocol);
-	void mailprivacy_unregister(mailprivacy * privacy,  mailprivacy_protocol * protocol);
-	char * mailprivacy_get_encryption_name(mailprivacy * privacy, char * privacy_driver, char * privacy_encryption);
-	int mailprivacy_encrypt( mailprivacy * privacy, char * privacy_driver, char * privacy_encryption,  mailmime * mime, mailmime ** result);
-	int mailprivacy_encrypt_msg( mailprivacy * privacy, char * privacy_driver, char * privacy_encryption, mailmessage * msg,  mailmime * mime, mailmime ** result);
-	void mailprivacy_debug( mailprivacy * privacy, FILE * f);
-	carray * mailprivacy_get_protocols( mailprivacy * privacy);
-	int mailprivacy_is_encrypted( mailprivacy * privacy, mailmessage * msg, mailmime * mime);
-	void mailprivacy_recursive_unregister_mime(mailprivacy * privacy,  mailmime * mime);
-	int mailprivacy_gnupg_init(mailprivacy * privacy);
-	void mailprivacy_gnupg_done( mailprivacy * privacy);
-	clist * mailprivacy_gnupg_encryption_id_list( mailprivacy * privacy, mailmessage * msg);
-	void mailprivacy_gnupg_encryption_id_list_clear( mailprivacy * privacy, mailmessage * msg);
-	int mailprivacy_gnupg_set_encryption_id(mailprivacy * privacy, char * user_id, char * passphrase);
-
-	mailengine * libetpan_engine_new( mailprivacy * privacy);
-	void libetpan_engine_free( mailengine * engine);
-	mailprivacy * libetpan_engine_get_privacy(mailengine * engine);
-	int libetpan_message_ref( mailengine * engine, mailmessage * msg);
-	int libetpan_message_unref( mailengine * engine, mailmessage * msg);
-	int libetpan_message_mime_ref( mailengine * engine, mailmessage * msg);
-	int libetpan_message_mime_unref( mailengine * engine, mailmessage * msg);
-	int libetpan_folder_get_msg_list( mailengine * engine, mailfolder * folder,  mailmessage_list ** p_new_msg_list,  mailmessage_list ** p_lost_msg_list);
-	int libetpan_folder_fetch_env_list( mailengine * engine, mailfolder * folder,  mailmessage_list * msg_list);
-	void libetpan_folder_free_msg_list(mailengine * engine, mailfolder * folder,  mailmessage_list * env_list);
-	int libetpan_storage_add( mailengine * engine,  mailstorage * storage);
-	void libetpan_storage_remove( mailengine * engine,  mailstorage * storage);
-	int libetpan_storage_connect( mailengine * engine,  mailstorage * storage);
-	void libetpan_storage_disconnect( mailengine * engine, mailstorage * storage);
-	int libetpan_storage_used(mailengine * engine,  mailstorage * storage);
-	int libetpan_folder_connect(mailengine * engine,  mailfolder * folder);
-	void libetpan_folder_disconnect(mailengine * engine,  mailfolder * folder);
-	mailfolder * libetpan_message_get_folder( mailengine * engine, mailmessage * msg);
-	mailstorage * libetpan_message_get_storage( mailengine * engine, mailmessage * msg);
-	int libetpan_message_register( mailengine * engine,  mailfolder * folder, mailmessage * msg);
-	void libetpan_engine_debug( mailengine * engine, FILE * f);
-	void * engine_app;
-
-	mailstream_low * mailstream_low_new(void * data, mailstream_low_driver * driver);
-	ssize_t mailstream_low_write(mailstream_low * s, const void * buf, size_t count);
-	ssize_t mailstream_low_read(mailstream_low * s, void * buf, size_t count);
-	int mailstream_low_close(mailstream_low * s);
-	int mailstream_low_get_fd(mailstream_low * s);
-	mailstream_cancel * mailstream_low_get_cancel(mailstream_low * s);
-	void mailstream_low_free(mailstream_low * s);
-	void mailstream_low_cancel(mailstream_low * s);
-	void mailstream_low_log_error(mailstream_low * s, const void * buf, size_t count);
-	void mailstream_low_set_privacy(mailstream_low * s, int can_be_public);
-	int mailstream_low_set_identifier(mailstream_low * s, char * identifier);
-	const (char *) mailstream_low_get_identifier(mailstream_low * s);
-	void mailstream_low_set_timeout(mailstream_low * s, time_t timeout);
-	time_t mailstream_low_get_timeout(mailstream_low * s);
-	void mailstream_low_set_logger(mailstream_low * s, void function(mailstream_low * s, int log_type, const char * str, size_t size, void * context) logger, void * logger_context);
-	carray * mailstream_low_get_certificate_chain(mailstream_low * s);
-	int mailstream_low_wait_idle(mailstream_low * low, mailstream_cancel * cancel, int max_idle_delay);
-	int mailstream_low_setup_idle(mailstream_low * low);
-	int mailstream_low_unsetup_idle(mailstream_low * low);
-	int mailstream_low_interrupt_idle(mailstream_low * low);
-
 	struct _mailstream_cancel {
 	  int ms_cancelled;
 	  int ms_fds[2];
@@ -5086,24 +4282,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  int sem_kind;
 	};
 
-	
-	mailsem * mailsem_new();
-	void mailsem_free( mailsem * sem);
-	int mailsem_up( mailsem * sem);
-	int mailsem_down( mailsem * sem);
-	enum USE_DEFLATE =1;
-	__gshared mailstream_low_driver * mailstream_compress_driver;
-	__gshared struct mailstream_compress_context;
-
-	mailstream_low * mailstream_low_compress_open(mailstream_low * ms);
-	int mailstream_low_compress_wait_idle(mailstream_low * low,  _mailstream_cancel * idle, int max_idle_delay);
-	uint16_t mail_get_service_port(const char * name, char * protocol);
-	int mail_tcp_connect(const char * server, uint16_t port);
-	int mail_tcp_connect_timeout(const char * server, uint16_t port, time_t timeout);
-	int mail_tcp_connect_with_local_address(const char * server, uint16_t port,
-	    const char * local_address, uint16_t local_port);
-	int mail_tcp_connect_with_local_address_timeout(const char * server, uint16_t port,
-	    const char * local_address, uint16_t local_port, time_t timeout);
 
 
 	struct carray_s {
@@ -5111,71 +4289,12 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  uint len;
 	  uint max;
 	};
-
-	alias carray=carray_s;
-
-	carray *   carray_new(uint initsize);
-	int       carray_add(carray * array, void * data, uint * indx);
-	int carray_set_size(carray * array, uint new_size);
-	int       carray_delete(carray * array, uint indx);
-	int       carray_delete_slow(carray * array, uint indx);
-	int carray_delete_fast(carray * array, uint indx);
-	void **   carray_data(carray *);
-	uint carray_count(carray *);
-	void *    carray_get(carray * array, uint indx);
-	void      carray_set(carray * array, uint indx, void * value);
-
-	void ** carray_data(carray * array)
-	{
-	  return array.array;
-	}
-
-	uint carray_count(carray * array)
-	{
-	  return array.len;
-	}
-
-	void * carray_get(carray * array, uint indx)
-	{
-	  return array.array[indx];
-	}
-
-	void carray_set(carray * array, uint indx, void * value)
-	{
-	  array.array[indx] = value;
-	}
-	
-	void carray_free(carray * array);
-	time_t mail_mkgmtime( tm * tmp);
-	char * encode_base64(const( char) * _in, int len);
-	char * decode_base64(const (char )* _in, int len);
-
-	void mailsasl_init_lock();
-	void mailsasl_uninit_lock();
 	struct MD5_CTX {
 	  UINT4[4] state;                                   /* state (ABCD) */
 	  UINT4[2] count;        /* number of bits, modulo 2^64 (lsb first) */
 	  ubyte[64] buffer;                         /* input buffer */
 	}
-/* fixme
 
-	void MD5Init PROTO_LIST (MD5_CTX *);
-	void MD5Update PROTO_LIST(MD5_CTX *, const ubyte *, uint);
-	void MD5Final PROTO_LIST (ubyte [16], MD5_CTX *);
-	void hmac_md5 PROTO_LIST (const ubyte *, int, const ubyte *, int, ubyte *);
-*/
-	int mail_cache_db_open(const char * filename,  mail_cache_db ** pcache_db);
-	void mail_cache_db_close( mail_cache_db * cache_db);
-	int mail_cache_db_open_lock(const char * filename,  mail_cache_db ** pcache_db);
-	void mail_cache_db_close_unlock(const char * filename,  mail_cache_db * cache_db);
-	int mail_cache_db_put( mail_cache_db * cache_db, const void * key, size_t key_len, const void * value, size_t value_len);
-	int mail_cache_db_get( mail_cache_db * cache_db, const void * key, size_t key_len, void ** pvalue, size_t * pvalue_len);
-	int mail_cache_db_get_size( mail_cache_db * cache_db, const void * key, size_t key_len, size_t * pvalue_len);
-	int mail_cache_db_del( mail_cache_db * cache_db, const void * key, size_t key_len);
-	int mail_cache_db_clean_up( mail_cache_db * cache_db, chash * exist);
-	int mail_cache_db_get_keys( mail_cache_db * cache_db, chash * keys);
-	//struct _mailstream_low;
-	alias _mailstream_low= mailstream_low;
 
 	enum {
 	  /* Buffer is a log text string. */
@@ -5238,9 +4357,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  void * logger_context;
 	};
 
-	alias  progress_function=void function(size_t current, size_t maximum);
-
-	alias mailprogress_function=void function(size_t current, size_t maximum, void * context);
 
 	enum {
 	  MAILSTREAM_IDLE_ERROR,
@@ -5253,12 +4369,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	struct mail_cache_db {
 	  void * internal_database;
 	};
-	void mailsasl_external_ref();
-	void mailsasl_ref();
-	void mailsasl_unref();
-
-	void mailstream_ssl_init_lock();
-	void mailstream_ssl_uninit_lock();
 
 	struct clistcell_s {
 	  void * data;
@@ -5273,27 +4383,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  int count;
 	};
 
-	alias clist=clist_s ;
-	alias clistiter=clistcell_s ;
-	clist *      clist_new();
-	void        clist_free(clist *);
-	int         clist_isempty(clist *);
-	int         clist_count(clist *);
-	clistiter *   clist_begin(clist *);
-	clistiter *   clist_end(clist *);
-	clistiter *   clist_next(clistiter *);
-	clistiter *   clist_previous(clistiter *);
-	void*       clist_content(clistiter *);
-	int         clist_prepend(clist *, void *);
-	int         clist_append(clist *, void *);
-	int         clist_insert_before(clist *, clistiter *, void *);
-	int         clist_insert_after(clist *, clistiter *, void *);
-	clistiter *   clist_delete(clist *, clistiter *);
-	alias clist_func=void function(void *, void *);
-	void clist_foreach(clist * lst, clist_func func, void * data);
-	void clist_concat(clist * dest, clist * src);
-	void * clist_nth_data(clist * lst, int indx);
-	clistiter * clist_nth(clist * lst, int indx);
 
 	struct chashdatum
 	{
@@ -5317,25 +4406,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  chashcell * next;
 	}
 
-	enum CHASH_COPYNONE    =0;
-	enum CHASH_COPYKEY     =1;
-	enum CHASH_COPYVALUE   =2;
-	enum CHASH_COPYALL     =(CHASH_COPYKEY | CHASH_COPYVALUE);
-	enum CHASH_DEFAULTSIZE=13;
-	chash * chash_new(uint size, int flags);
-	void chash_free(chash * hash);
-	void chash_clear(chash * hash);
-	int chash_set(chash * hash, chashdatum * key, chashdatum * value, chashdatum * oldvalue);
-	int chash_get(chash * hash, chashdatum * key, chashdatum * result);
-	int chash_delete(chash * hash, chashdatum * key, chashdatum * oldvalue);
-	int chash_resize(chash * hash, uint size);
-	chashiter * chash_begin(chash * hash);
-	chashiter * chash_next(chash * hash, chashiter * iter);
-	uint          chash_size(chash * hash);
-	uint          chash_count(chash * hash);
-	void chash_key(chashiter * iter, chashdatum * result);
-	void chash_value(chashiter * iter, chashdatum * result);
-	alias MMAPString =  _MMAPString;
 
 	struct _MMAPString
 	{
@@ -5349,37 +4419,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  */
 	}
 
-	void mmap_string_set_tmpdir(const char * directory);
-	MMAPString * mmap_string_new (const char * init);
-	MMAPString * mmap_string_new_len (const char * init, size_t len);
-	MMAPString * mmap_string_sized_new (size_t dfl_size);
-	void mmap_string_free (MMAPString * string);
-	MMAPString * mmap_string_assign (MMAPString * string, const char * rval);
-	MMAPString * mmap_string_truncate (MMAPString *string, size_t len);
-	MMAPString * mmap_string_set_size (MMAPString * string, size_t len);
-	MMAPString * mmap_string_insert_len (MMAPString * string, size_t pos, const char * val, size_t len);
-	MMAPString * mmap_string_append (MMAPString * string, const char * val);
-	MMAPString * mmap_string_append_len (MMAPString * string, const char * val, size_t len);
-	MMAPString * mmap_string_append_c (MMAPString * string, char c);
-	MMAPString * mmap_string_prepend (MMAPString * string, const char * val);
-	MMAPString * mmap_string_prepend_c (MMAPString * string, char c);
-	MMAPString * mmap_string_prepend_len (MMAPString * string, const char * val, size_t len);
-	MMAPString * mmap_string_insert (MMAPString * string, size_t pos, const char * val);
-	MMAPString * mmap_string_insert_c (MMAPString *string, size_t pos, char c);
-	MMAPString * mmap_string_erase(MMAPString * string, size_t pos, size_t len);
-	void mmap_string_set_ceil(size_t ceil);
-	int mmap_string_ref(MMAPString * string);
-	int mmap_string_unref(char * str);
-	char * mailstream_read_line(mailstream * stream, MMAPString * line);
-	char * mailstream_read_line_append(mailstream * stream, MMAPString * line);
-	char * mailstream_read_line_remove_eol(mailstream * stream, MMAPString * line);
-	char * mailstream_read_multiline(mailstream * s, size_t size, MMAPString * stream_buffer, MMAPString * multiline_buffer, size_t progr_rate, progress_function * progr_fun, mailprogress_function * body_progr_fun, void * context);
-	int mailstream_is_end_multiline(const char * line);
-	int mailstream_send_data_crlf(mailstream * s, const char * message, size_t size, size_t progr_rate, progress_function * progr_fun);
-	int mailstream_send_data_crlf_with_context(mailstream * s, const char * message, size_t size, mailprogress_function * progr_fun, void * context);
-	int mailstream_send_data(mailstream * s, const char * message, size_t size, size_t progr_rate, progress_function * progr_fun);
-	int mailstream_send_data_with_context(mailstream * s, const char * message, size_t size, mailprogress_function * progr_fun, void * context);
-	size_t mailstream_get_data_crlf_size(const char * message, size_t size);
 
 	enum {
 	  MAIL_CHARCONV_NO_ERROR = 0,
@@ -5387,15 +4426,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	  MAIL_CHARCONV_ERROR_MEMORY,
 	  MAIL_CHARCONV_ERROR_CONV
 	}
-
-	//int function(const char * tocode, const char * fromcode, const char * str, size_t length, char * result, size_t* result_len) extended_charconv;
-	int charconv(const char * tocode, const char * fromcode, const char * str, size_t length, char ** result);
-	int charconv_buffer(const char * tocode, const char * fromcode, const char * str, size_t length, char ** result, size_t * result_len);
-	void charconv_buffer_free(char * str);
-	int maillock_read_lock(const char * filename, int fd);
-	int maillock_read_unlock(const char * filename, int fd);
-	int maillock_write_lock(const char * filename, int fd);
-	int maillock_write_unlock(const char * filename, int fd);
 
 	enum HMAC_MD5_SIZE=16;
 
@@ -5409,74 +4439,6 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 	    UINT4[4] istate;
 	    UINT4[4] ostate;
 	}
-	
-	void hmac_md5(const ubyte *text, int text_len, const ubyte *key, int key_len, ubyte digest[HMAC_MD5_SIZE]);
-	void hmac_md5_init(HMAC_MD5_CTX *hmac, const ubyte *key, int key_len);
-	void hmac_md5_precalc(HMAC_MD5_STATE *hmac, const ubyte *key, int key_len);
-	void hmac_md5_import(HMAC_MD5_CTX *hmac, HMAC_MD5_STATE *state);
-
-	auto hmac_md5_update(T)(T hmac, T text, T text_len)
-	{
-		return MD5Update(&(hmac).ictx, (text), (text_len));
-	}
-
-	void hmac_md5_final(ubyte digest[HMAC_MD5_SIZE], HMAC_MD5_CTX *hmac);
-
-	__gshared mailstream_low_driver * mailstream_ssl_driver;
-	// mailstream_ssl_context;
-	mailstream_low * mailstream_low_ssl_open(int fd);
-	mailstream_low * mailstream_low_ssl_open_timeout(int fd, time_t timeout);
-	mailstream_low * mailstream_low_tls_open(int fd);
-	mailstream_low * mailstream_low_tls_open_timeout(int fd, time_t timeout);
-	mailstream * mailstream_ssl_open(int fd);
-	mailstream * mailstream_ssl_open_timeout(int fd, time_t timeout);
-	mailstream * mailstream_ssl_open_with_callback(int fd, void function(mailstream_ssl_context * ssl_context, void * data) callback, void * data);
-	mailstream * mailstream_ssl_open_with_callback_timeout(int fd, time_t timeout, void function( mailstream_ssl_context * ssl_context, void * data) callback, void * data);
-	void mailstream_gnutls_init_not_required();
-	void mailstream_openssl_init_not_required();
-	void mailstream_ssl_init_not_required();
-	ssize_t mailstream_ssl_get_certificate(mailstream *stream, ubyte **cert_DER);
-	mailstream_low * mailstream_low_ssl_open_with_callback(int fd, void function( mailstream_ssl_context * ssl_context, void * data) callback, void * data);
-	mailstream_low * mailstream_low_ssl_open_with_callback_timeout(int fd, time_t timeout, void function( mailstream_ssl_context * ssl_context, void * data) callback, void * data);
-	mailstream_low * mailstream_low_tls_open_with_callback(int fd, void function( mailstream_ssl_context * ssl_context, void * data) callback, void * data);
-	mailstream_low * mailstream_low_tls_open_with_callback_timeout(int fd, time_t timeout, void function( mailstream_ssl_context * ssl_context, void * data) callback, void * data);
-	int mailstream_ssl_set_client_certicate(mailstream_ssl_context * ssl_context, char * file_name);
-	int mailstream_ssl_set_client_certificate_data( mailstream_ssl_context * ssl_context, ubyte *x509_der, size_t len);
-	int mailstream_ssl_set_client_private_key_data( mailstream_ssl_context * ssl_context, ubyte *pkey_der, size_t len);
-	int mailstream_ssl_set_server_certicate( mailstream_ssl_context * ssl_context, char * CAfile, char * CApath);
-	void * mailstream_ssl_get_openssl_ssl_ctx( mailstream_ssl_context * ssl_context);
-	int mailstream_ssl_get_fd(mailstream_ssl_context * ssl_context);
-
-	/* PROTOTYPES should be set to one if and only if the compiler supports
-	  function argument prototyping.
-	The following makes PROTOTYPES default to 0 if it has not already
-	  been defined with C compiler flags.
-	 */
-	enum PROTOTYPES=1;
-
-	/* POINTER defines a generic pointer type */
-	alias POINTER= ubyte *;
-	alias CONST_POINTER=const(ubyte)*;
-
-	/* UINT2 defines a two byte word */
-	alias UINT2= ushort;
-
-	/* UINT4 defines a four byte word */
-	alias UINT4= ulong;
-
-/* fixme
-	static if (PROTOTYPES==1)
-	{
-		alias enum PROTO_LIST(list) list;
-	}
-	else{
-		alias  PROTO_LIST(list)=();
-	}
-*/
-	void mmapstring_init_lock();
-	void mmapstring_uninit_lock();
-	__gshared int mailstream_cfstream_enabled;
-	__gshared int mailstream_cfstream_voip_enabled;
 
 	enum {
 		MAILSTREAM_CFSTREAM_SSL_ALLOWS_EXPIRED_CERTIFICATES = 1 << 0,
@@ -5496,90 +4458,3 @@ mailimap_qresync_vanished * mailimap_qresync_vanished_new(int qr_earlier, mailim
 		MAILSTREAM_CFSTREAM_SSL_LEVEL_TLSv1,
 		MAILSTREAM_CFSTREAM_SSL_LEVEL_NEGOCIATED_SSL
 	};
-	  
-	__gshared mailstream_low_driver * mailstream_cfstream_driver;
-	mailstream * mailstream_cfstream_open(const char * hostname, int16_t port);
-	mailstream * mailstream_cfstream_open_timeout(const char * hostname, int16_t port, time_t timeout);
-	mailstream * mailstream_cfstream_open_voip(const char * hostname, int16_t port, int voip_enabled);
-	mailstream * mailstream_cfstream_open_voip_timeout(const char * hostname, int16_t port, int voip_enabled, time_t timeout);
-	mailstream_low * mailstream_low_cfstream_open(const char * hostname, int16_t port);
-	mailstream_low * mailstream_low_cfstream_open_timeout(const char * hostname, int16_t port, time_t timeout);
-	mailstream_low * mailstream_low_cfstream_open_voip(const char * hostname, int16_t port, int voip_enabled);
-	mailstream_low * mailstream_low_cfstream_open_voip_timeout(const char * hostname, int16_t port, int voip_enabled, time_t timeout);
-	void mailstream_cfstream_set_ssl_verification_mask(mailstream * s, int verification_mask);
-	void mailstream_cfstream_set_ssl_peer_name(mailstream * s, const char * peer_name);
-	void mailstream_cfstream_set_ssl_is_server(mailstream * s, int is_server);
-	void mailstream_cfstream_set_ssl_level(mailstream * s, int ssl_level);
-	int mailstream_cfstream_set_ssl_enabled(mailstream * s, int ssl_enabled);
-	int mailstream_cfstream_is_ssl_enabled(mailstream * s);
-	int mailstream_cfstream_wait_idle(mailstream * s, int max_idle_delay);
-	int mailstream_low_cfstream_wait_idle(mailstream_low * low, int max_idle_delay);
-	mailstream * mailstream_new(mailstream_low * low, size_t buffer_size);
-	ssize_t mailstream_write(mailstream * s, const void * buf, size_t count);
-	ssize_t mailstream_read(mailstream * s, void * buf, size_t count);
-	int mailstream_close(mailstream * s);
-	int mailstream_flush(mailstream * s);
-	ssize_t mailstream_feed_read_buffer(mailstream * s);
-	void mailstream_log_error(mailstream * s, char * buf, size_t count);
-	mailstream_low * mailstream_get_low(mailstream * s);
-	void mailstream_set_low(mailstream * s, mailstream_low * low);
-	alias mailstream_cancel=void function(mailstream * s);
-	void mailstream_set_privacy(mailstream * s, int can_be_public);
-	debug
-	{
-		int mailstream_debug;
-		void function(int direction, const char * str, size_t size) mailstream_logger;
-		void function(mailstream_low * s, int is_stream_data, int direction, const char * str, size_t size) mailstream_logger_id;
-	}
-
-	void mailstream_set_logger(mailstream * s, void function(mailstream * s, int log_type, const char * str, size_t size, void * context) logger, void * logger_context);
-	int mailstream_wait_idle(mailstream * s, int max_idle_delay);
-	int mailstream_setup_idle(mailstream * s);
-	void mailstream_unsetup_idle(mailstream * s);
-	void mailstream_interrupt_idle(mailstream * s);
-	carray * mailstream_get_certificate_chain(mailstream * s);
-	void mailstream_certificate_chain_free(carray * certificate_chain);
-	enum LIBETPAN_MAILSTREAM_NETWORK_DELAY=1;
-	__gshared timeval mailstream_network_delay;
-	__gshared mailstream_cancel * mailstream_cancel_new();
-	void mailstream_cancel_free( mailstream_cancel * cancel);
-	int mailstream_cancel_cancelled( mailstream_cancel * cancel);
-	void mailstream_cancel_notify( mailstream_cancel * cancel);
-	void mailstream_cancel_ack( mailstream_cancel * cancel);
-	int mailstream_cancel_get_fd( mailstream_cancel * cancel);
-}
-
-
-/**
-libEtPan! -- a mail stuff library
-
-Copyright (C) 2001 - 2005 - DINH Viet Hoa
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
-3. Neither the name of the libEtPan! project nor the names of its
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-SUCH DAMAGE.
-
-This project contains code from sendmail, NetBSD,
-RSA Data Security MD5 Message-Digest Algorithm, Cyrus IMAP.
-*/
